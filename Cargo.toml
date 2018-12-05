@@ -1,0 +1,6 @@
+[package]
+name = "minigrep"
+version = "0.1.0"
+authors = ["Jelle Haandrikman <jhaand@xs4all.nl>"]
+
+[dependencies]
