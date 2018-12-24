@@ -1,7 +1,6 @@
+use std::env;
 use std::error::Error;
 use std::fs;
-use std::io::prelude::*;
-use std::env;
 
 pub struct Config {
     pub query: String,
@@ -11,15 +10,56 @@ pub struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
+        let arg_len = args.len();
+        if arg_len < 3 {
             return Err("not enough arguments");
         }
-        let query = args[1].clone();
-        let filename = args[2].clone();
+        if arg_len > 4 {
+            return Err("too many arguments");
+        }
 
-        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+        let case_arg = args[1].clone();
 
-        Ok(Config { query, filename, case_sensitive })
+        let cl_case_switch = if arg_len == 4 {
+            match case_arg.as_str() {
+                "-i" => true,
+                "-C" => true,
+                _ => false,
+            }
+        } else {
+            false
+        };
+
+        if arg_len == 4 && cl_case_switch == false {
+            return Err("unkown command line switch used. Use -i or -C ");
+        }
+
+        let query = if cl_case_switch {
+            args[2].clone()
+        } else {
+            args[1].clone()
+        };
+        let filename = if cl_case_switch {
+            args[3].clone()
+        } else {
+            args[2].clone()
+        };
+
+        let mut case_sensitive = if env::var("CASE_INSENSITIVE").is_err() {
+            true
+        } else {
+            false
+        };
+
+        if cl_case_switch == true {
+            case_sensitive = if case_arg == "-i" { false } else { true }
+        }
+
+        Ok(Config {
+            query,
+            filename,
+            case_sensitive,
+        })
     }
 }
 
